@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multi-System Executive Coordinator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0f0515;
+            --panel-bg: rgba(255, 255, 255, 0.04);
+            --border-color: rgba(255, 255, 255, 0.1);
+            --text-color: #fff; /* Changed from #e0e0e0 */
+            --text-muted: rgba(255, 255, 255, 0.8);
+            --accent-color: #ffb3b3;
+            --brand-color: #500000;
+            --success-color: #2ecc71;
+            --warning-color: #f1c40f;
+            --error-color: #e74c3c;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: radial-gradient(ellipse at top, #0f0515 0%, #1a0a1a 30%, #2d1b2e 70%, #0f0515 100%);
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+
+        .app-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header-section {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .main-title {
+            font-size: clamp(28px, 5vw, 42px);
+            font-weight: 600;
+            background: linear-gradient(135deg, #ffffff, var(--accent-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .main-subtitle {
+            font-size: 18px;
+            color: var(--text-muted);
+        }
+
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeInUp 0.5s; }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .scenario-selection-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+        .scenario-card {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .scenario-card:hover {
+            transform: translateY(-5px);
+            background: rgba(80, 0, 0, 0.3);
+            border-color: var(--accent-color);
+        }
+        .scenario-card h3 {
+            margin-bottom: 0.5rem;
+            border-bottom: 2px solid;
+            padding-bottom: 0.5rem;
+        }
+        .scenario-1 h3 { color: #80d8ff; border-color: #80d8ff;}
+        .scenario-2 h3 { color: #f1c40f; border-color: #f1c40f;}
+        .scenario-3 h3 { color: #ff8a80; border-color: #ff8a80;}
+
+
+        .phase-header {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            background: rgba(80, 0, 0, 0.2);
+            border-radius: 16px;
+        }
+        .phase-title { font-size: 1.5rem; font-weight: 600; color: #fff; }
+        .phase-description { color: var(--text-muted); }
+
+        .main-layout {
+            display: grid;
+            grid-template-columns: 1fr 320px;
+            gap: 2rem;
+        }
+
+        .decision-panel {
+            background: var(--panel-bg);
+            border-radius: 16px;
+            padding: 2rem;
+        }
+        
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+        .sidebar-section {
+            background: var(--panel-bg);
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            padding: 1.5rem;
+        }
+        .sidebar-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--accent-color);
+            margin-bottom: 1rem;
+        }
+        .sidebar-content ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        .sidebar-content li {
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+            padding-left: 1.2rem;
+            position: relative;
+        }
+        .sidebar-content li::before {
+            content: '•';
+            color: #fff;
+            font-weight: bold;
+            position: absolute;
+            left: 0;
+        }
+        
+        .progress-meter {
+            margin-bottom: 1rem;
+        }
+        .progress-label {
+            font-size: 0.9rem;
+            margin-bottom: 0.25rem;
+            color: var(--text-muted);
+        }
+        .meter-bar {
+            width: 100%;
+            height: 10px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        .meter-fill {
+            height: 100%;
+            width: 50%;
+            border-radius: 5px;
+            transition: width 0.5s ease;
+        }
+        #influence-fill { background: #80d8ff; }
+        #alignment-fill { background: #ffb3b3; }
+        #sustainability-fill { background: #f1c40f; }
+        #value-fill { background: var(--success-color); }
+
+
+        .choice-option {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1rem;
+            cursor: pointer;
+            margin-bottom: 1rem;
+            transition: all 0.2s ease;
+        }
+        .choice-option:hover {
+            border-color: var(--accent-color);
+            background: rgba(80, 0, 0, 0.3);
+        }
+        .choice-option.disabled {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        .btn {
+            padding: 12px 25px; border: none; border-radius: 10px; cursor: pointer;
+            font-weight: 600; font-size: 14px; transition: all 0.3s ease;
+            width: 100%;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #2ecc71, #27ae60); color: white;
+        }
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.08); color: rgba(255, 255, 255, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .results-panel { display: none; }
+        .results-panel.show { display: block; }
+        
+        .feedback-section { background: rgba(255, 255, 255, 0.04); border-radius: 14px; padding: 20px; text-align: center; }
+        .feedback-title { font-size: 1.5rem; font-weight: 600; color: var(--accent-color); margin-bottom: 12px; }
+        .final-score { font-size: 3rem; font-weight: 700; color: var(--success-color); margin-bottom: 1rem; }
+        .next-step-section { text-align: center; margin-top: 30px; }
+        
+        .choice-feedback {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            border-radius: 8px;
+            background: rgba(0,0,0,0.2);
+            animation: fadeIn 0.5s;
+        }
+        .feedback-item { margin-bottom: 1rem; }
+        .feedback-item:last-child { margin-bottom: 0; }
+        .feedback-item h5 {
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+        .feedback-item p {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+        .optimal-choice h5 { color: var(--success-color); }
+        .your-choice h5 { color: var(--error-color); }
+
+        @media (max-width: 900px) {
+            .main-layout { grid-template-columns: 1fr; }
+            .sidebar { order: -1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <header class="header-section">
+            <h1 class="main-title">Multi-System Executive Coordinator</h1>
+            <p class="main-subtitle">Orchestrating Influence Across Boundaries</p>
+        </header>
+
+        <div id="main-view">
+            <div id="intro" class="tab-content active">
+                <h2 style="color: #ffb3b3; margin-bottom: 10px; text-align: center;">Welcome!</h2>
+                <p style="text-align: center; color: var(--text-muted); margin-bottom: 20px;">Select a scenario to practice your executive coordination skills.</p>
+                <div class="scenario-selection-grid"></div>
+            </div>
+
+            <div id="scenario" class="tab-content">
+                <!-- Scenario content will be injected here -->
+            </div>
+
+            <div id="results" class="tab-content results-panel">
+                <div class="phase-header" style="text-align:center;">
+                    <h2 class="phase-title">Coordination Debrief</h2>
+                </div>
+                <div class="feedback-section">
+                    <h3 class="feedback-title" id="final-title">Great Effort!</h3>
+                    <p>Your final effectiveness score is:</p>
+                    <div class="final-score" id="final-score-value">--</div>
+                    <div id="final-feedback"></div>
+                </div>
+                <div class="next-step-section">
+                    <button class="btn btn-secondary" id="backToMenuBtn">Back to Scenarios</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const scenarioContainer = document.getElementById('scenario');
+            const introContainer = document.getElementById('intro');
+            const resultsContainer = document.getElementById('results');
+
+            let scores;
+            let currentScenario;
+            let currentPhaseIndex;
+
+            const scenarios = [
+                {
+                    title: "State-Wide EM Enhancement",
+                    situation: "You are leading an initiative to enhance emergency management capability across all state counties, involving state agencies, local governments, and private sector partners.",
+                    phases: [
+                        {
+                            challenge: "Tensions are high: large counties want sophisticated solutions, while smaller counties need basic capability building. How do you begin?",
+                            choices: [
+                                { text: "Propose a single, standardized enhancement package for all counties to ensure consistency.", effects: { influence: -10, alignment: -15, sustainability: 5, value: 5 }, rationale: "This ignores the diverse needs of your stakeholders, creating resistance from both large and small counties." },
+                                { text: "Create a tiered system with a baseline for all counties and optional, advanced modules for those with greater capacity.", effects: { influence: 15, alignment: 20, sustainability: 15, value: 20 }, isOptimal: true, rationale: "This is optimal. It creates a win-win by providing a universal baseline (equity) while allowing for advanced options (flexibility), meeting the needs of diverse stakeholders." },
+                                { text: "Focus all resources on the largest, most influential counties first to show quick results.", effects: { influence: 5, alignment: -20, sustainability: -10, value: 10 }, rationale: "This alienates the majority of your stakeholders and undermines the goal of state-wide enhancement, even if it looks good in the short term." }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    title: "Multi-State Resilience Coordination",
+                    situation: "You are developing a coordinated resilience capability across multiple states with different legal frameworks, political priorities, and resource levels.",
+                    phases: [
+                        {
+                            challenge: "Some states have advanced capabilities and want sophisticated coordination, while others need fundamental development. How do you build a regional plan?",
+                            choices: [
+                                { text: "Design the plan around the capabilities of the most advanced states and require others to catch up.", effects: { influence: -15, alignment: -20, sustainability: -10, value: 5 }, rationale: "This approach will be seen as arrogant and unrealistic by less-resourced states, likely causing them to disengage from the process." },
+                                { text: "Focus only on the 'lowest common denominator' to ensure everyone can participate.", effects: { influence: 5, alignment: 5, sustainability: 0, value: -10 }, rationale: "While inclusive, this fails to leverage the strengths of more advanced partners and provides little value to them, reducing their incentive to participate." },
+                                { text: "Create a modular plan where states can participate at different levels, and build in a peer-mentoring system between advanced and developing states.", effects: { influence: 20, alignment: 20, sustainability: 15, value: 25 }, isOptimal: true, rationale: "This is the best choice. It respects state sovereignty, creates value for all participants, and uses collaboration to build overall regional capacity." }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    title: "Cross-Sector Infrastructure Coordination",
+                    situation: "You are coordinating an emergency management enhancement across government agencies, private utility companies, and community organizations.",
+                    phases: [
+                        {
+                            challenge: "The government agencies want comprehensive oversight, while the private utility companies are concerned about protecting their competitive and proprietary information.",
+                            choices: [
+                                { text: "Insist that all partners must adhere to full government transparency and oversight standards.", effects: { influence: -20, alignment: -15, sustainability: -15, value: -10 }, rationale: "This fails to understand the legitimate business constraints of private partners, likely causing them to withdraw from the initiative." },
+                                { text: "Allow private partners to operate with full confidentiality, providing only minimal information to the government agencies.", effects: { influence: -10, alignment: -15, sustainability: -10, value: 0 }, rationale: "This ignores the legitimate oversight role of government, creating accountability gaps and damaging trust with public-sector partners." },
+                                { text: "Develop a tiered information-sharing agreement that protects proprietary data while providing government partners with the necessary operational oversight.", effects: { influence: 15, alignment: 20, sustainability: 20, value: 20 }, isOptimal: true, rationale: "This is optimal. It finds the 'win-win' by respecting the constraints and needs of both sectors, creating a sustainable framework for collaboration." }
+                            ]
+                        }
+                    ]
+                }
+            ];
+            
+            function renderScenario(scenarioId) {
+                currentScenario = scenarios[scenarioId];
+                currentPhaseIndex = 0;
+                scores = { influence: 50, alignment: 50, sustainability: 50, value: 50 };
+                
+                scenarioContainer.innerHTML = `
+                    <div class="phase-header">
+                        <h3 class="phase-title">${currentScenario.title}</h3>
+                        <p class="phase-description">${currentScenario.situation}</p>
+                    </div>
+                    <div class="main-layout">
+                        <div class="decision-panel" id="decision-panel"></div>
+                        <aside class="sidebar">
+                            <div class="sidebar-section">
+                                <h3 class="sidebar-title">Executive Dashboard</h3>
+                                <div class="progress-meter">
+                                    <div class="progress-label">Influence Effectiveness</div>
+                                    <div class="meter-bar"><div id="influence-fill" class="meter-fill"></div></div>
+                                </div>
+                                <div class="progress-meter">
+                                    <div class="progress-label">Stakeholder Alignment</div>
+                                    <div class="meter-bar"><div id="alignment-fill" class="meter-fill"></div></div>
+                                </div>
+                                <div class="progress-meter">
+                                    <div class="progress-label">Coordination Sustainability</div>
+                                    <div class="meter-bar"><div id="sustainability-fill" class="meter-fill"></div></div>
+                                </div>
+                                <div class="progress-meter">
+                                    <div class="progress-label">Value Creation</div>
+                                    <div class="meter-bar"><div id="value-fill" class="meter-fill"></div></div>
+                                </div>
+                            </div>
+                             <div class="sidebar-section">
+                                <h3 class="sidebar-title">How it Works</h3>
+                                <div class="sidebar-content">
+                                   <p style="font-size:0.9rem;">The dashboard ratings start at a neutral 50% and will go up or down in real-time based on your decisions.</p>
+                                </div>
+                            </div>
+                        </aside>
+                    </div>
+                `;
+                
+                updateMetrics();
+                renderPhase();
+            }
+
+            function renderPhase() {
+                const phase = currentScenario.phases[currentPhaseIndex];
+                const decisionPanel = document.getElementById('decision-panel');
+                
+                let choicesHTML = '';
+                phase.choices.forEach((choice, index) => {
+                    choicesHTML += `<div class="choice-option" data-index="${index}"><p>${choice.text}</p></div>`;
+                });
+
+                decisionPanel.innerHTML = `
+                    <h3 style="color: var(--accent-color); margin-bottom: 1rem;">Decision Point: ${phase.challenge}</h3>
+                    <p style="color: var(--text-muted); margin-bottom: 1.5rem;">Choose your strategic action:</p>
+                    ${choicesHTML}
+                    <div id="choice-feedback" class="choice-feedback" style="display:none;"></div>
+                `;
+
+                document.querySelectorAll('.choice-option').forEach((btn, index) => {
+                    btn.addEventListener('click', () => handleChoiceSelection(index));
+                });
+            }
+
+            function handleChoiceSelection(choiceIndex) {
+                const phase = currentScenario.phases[currentPhaseIndex];
+                const selectedChoice = phase.choices[choiceIndex];
+                const selectedChoiceElement = document.querySelector(`.choice-option[data-index="${choiceIndex}"]`);
+
+                scores.influence = Math.max(0, Math.min(100, scores.influence + (selectedChoice.effects.influence || 0)));
+                scores.alignment = Math.max(0, Math.min(100, scores.alignment + (selectedChoice.effects.alignment || 0)));
+                scores.sustainability = Math.max(0, Math.min(100, scores.sustainability + (selectedChoice.effects.sustainability || 0)));
+                scores.value = Math.max(0, Math.min(100, scores.value + (selectedChoice.effects.value || 0)));
+                
+                updateMetrics();
+                
+                document.querySelectorAll('.choice-option').forEach(btn => btn.classList.add('disabled'));
+
+                const optimalChoice = phase.choices.find(c => c.isOptimal);
+                
+                const feedbackBox = document.getElementById('choice-feedback');
+                let feedbackHTML = `<div class="feedback-item optimal-choice"><h5>Optimal Choice:</h5><p>${optimalChoice.rationale}</p></div>`;
+
+                if (!selectedChoice.isOptimal) {
+                    selectedChoiceElement.style.borderColor = 'var(--error-color)';
+                    feedbackHTML += `<div class="feedback-item your-choice"><h5>Your Choice:</h5><p>${selectedChoice.rationale}</p></div>`;
+                }
+                document.querySelector(`.choice-option[data-index="${phase.choices.indexOf(optimalChoice)}"]`).style.borderColor = 'var(--success-color)';
+                
+                feedbackHTML += `<button class="btn btn-primary" id="continueBtn" style="margin-top: 1rem;">Continue</button>`;
+                feedbackBox.innerHTML = feedbackHTML;
+                feedbackBox.style.display = 'block';
+
+                document.getElementById('continueBtn').addEventListener('click', () => {
+                    currentPhaseIndex++;
+                    if (currentPhaseIndex < currentScenario.phases.length) {
+                        renderPhase();
+                    } else {
+                        showResults();
+                    }
+                });
+            }
+
+            function updateMetrics() {
+                document.getElementById('influence-fill').style.width = `${scores.influence}%`;
+                document.getElementById('alignment-fill').style.width = `${scores.alignment}%`;
+                document.getElementById('sustainability-fill').style.width = `${scores.sustainability}%`;
+                document.getElementById('value-fill').style.width = `${scores.value}%`;
+            }
+
+            function showResults() {
+                scenarioContainer.classList.remove('active');
+                resultsContainer.classList.add('active');
+                
+                const finalScore = Math.round((scores.influence + scores.alignment + scores.sustainability + scores.value) / 4);
+                const finalScoreEl = document.getElementById('final-score-value');
+                const finalFeedbackEl = document.getElementById('final-feedback');
+                const finalTitleEl = document.getElementById('final-title');
+
+                finalScoreEl.textContent = `${finalScore} / 100`;
+                
+                if (finalScore >= 80) {
+                    finalTitleEl.textContent = "Excellent!";
+                    finalFeedbackEl.innerHTML = "<p>You masterfully orchestrated a complex situation, building influence and creating a sustainable, high-value outcome for all stakeholders.</p>";
+                    finalScoreEl.style.color = 'var(--success-color)';
+                } else if (finalScore >= 50) {
+                    finalTitleEl.textContent = "Solid Performance!";
+                    finalFeedbackEl.innerHTML = "<p>You made a good effort to coordinate the stakeholders. To improve, focus on finding 'win-win' solutions that create value for everyone, not just a compromise.</p>";
+                    finalScoreEl.style.color = 'var(--warning-color)';
+                } else {
+                    finalTitleEl.textContent = "Room for Improvement";
+                    finalFeedbackEl.innerHTML = "<p>This was a challenging executive scenario. Your choices may have created resistance or failed to build alignment. Remember that executive coordination is about influence, not just authority.</p>";
+                    finalScoreEl.style.color = 'var(--error-color)';
+                }
+            }
+
+            function startScenario(scenarioId) {
+                introContainer.classList.remove('active');
+                resultsContainer.classList.remove('active');
+                scenarioContainer.classList.add('active');
+                renderScenario(scenarioId);
+            }
+            
+            function showIntro() {
+                const grid = introContainer.querySelector('.scenario-selection-grid');
+                grid.innerHTML = '';
+                scenarios.forEach((scenario, index) => {
+                    grid.innerHTML += `<div class="scenario-card scenario-${index+1}" data-scenario-id="${index}"><h3>${scenario.title}</h3></div>`;
+                });
+                 document.querySelectorAll('.scenario-card').forEach(card => {
+                    card.addEventListener('click', (e) => startScenario(parseInt(e.currentTarget.dataset.scenarioId)));
+                });
+            }
+
+            document.getElementById('backToMenuBtn').addEventListener('click', () => {
+                 resultsContainer.classList.remove('active');
+                 introContainer.classList.add('active');
+            });
+            
+            showIntro();
+        });
+    </script>
+</body>
+</html>
